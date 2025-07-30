@@ -105,13 +105,28 @@ class RunCommand extends SymfonyCommand
      */
     protected function getTasks($container)
     {
-        $tasks = [$task = $this->argument('task')];
+        return $this->buildTaskList($container, $this->argument('task'));
+    }
 
+    /**
+     * Build a list of tasks starting from a task or macro name.
+     *
+     * @param  array  $tasks
+     * @param  \Laravel\Envoy\TaskContainer  $container
+     * @param  string  $task
+     * @return array
+     */
+    protected function buildTaskList($container, $task, $tasks = []): array
+    {
         if ($macro = $container->getMacro($task)) {
-            $tasks = $macro;
+            foreach ($macro as $task) {
+                $tasks = $this->buildTaskList($container, $task, $tasks);
+            }
+
+            return $tasks;
         }
 
-        return $tasks;
+        return [...$tasks, $task];
     }
 
     /**
